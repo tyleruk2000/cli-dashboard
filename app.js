@@ -1,6 +1,7 @@
 const blessed = require('blessed');
 const contrib = require('blessed-contrib');
 const RSSParser = require('rss-parser');
+const { startFeedUpdates } = require('./src/services/rssFetcher');
 
 process.env.TERM = 'xterm';
 
@@ -21,26 +22,7 @@ const newsTable = grid.set(0, 0, 1, 1, contrib.table, {
   columnWidth: [80],
 });
 
-// Initialize RSS parser
-const parser = new RSSParser();
-
-// Function to fetch and display the RSS feed
-async function fetchFeed() {
-  try {
-    const feed = await parser.parseURL('https://feeds.bbci.co.uk/news/rss.xml');
-    const headlines = feed.items.map((item) => [item.title]);
-
-    // Update the news table with headlines
-    newsTable.setData({ headers: ['Headline'], data: headlines });
-    screen.render();
-  } catch (error) {
-    console.error('Error fetching RSS feed:', error);
-  }
-}
-
-// Fetch the feed every 10 minutes
-fetchFeed();
-setInterval(fetchFeed, 10 * 60 * 1000);
+startFeedUpdates(newsTable, screen);
 
 // Quit on Escape, q, or Ctrl+C
 screen.key(['escape', 'q', 'C-c'], () => {
